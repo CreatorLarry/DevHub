@@ -32,7 +32,6 @@ const BookEvent = () => {
                     </div>
 
                     <button type="submit" className="button-submit">Book Your Spot</button>
-                    /
                 </form>
             )}
         </div>
