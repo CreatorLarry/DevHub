@@ -3,7 +3,7 @@ import {NextRequest, NextResponse} from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Event, {IEvent} from '@/database/event.model';
 
-// Define route params type for type safety
+// Define route params type for type safety (align with project-wide Promise params typing)
 type RouteParams = {
     params: Promise<{
         slug: string;
