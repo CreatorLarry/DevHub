@@ -48,7 +48,7 @@ const EventDetails = async ({params}: { params: Promise <string>}) => {
 
     if (!description) return notFound();
 
-    // const bookings = 10;
+    const bookings = 10;
 
     const similarEvents: IEvent[] = await getSimilarEventsBySlug(slug);
 
