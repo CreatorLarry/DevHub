@@ -4,14 +4,12 @@ import {IEvent} from "@/database";
 import {cacheLife} from "next/cache";
 import {getEvents} from "@/lib/data/events";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
-
 const Page = async () => {
     'use cache'
     cacheLife('hours')
-    const response = await fetch(`${BASE_URL}/api/events`);
-
-    const {events} = await response.json();
+    // Query the database directly during build/runtime instead of calling internal API routes.
+    // This avoids needing NEXT_PUBLIC_BASE_URL and fixes Invalid URL errors during prerender.
+    const events = await getEvents();
 
     return (
         <section>

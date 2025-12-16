@@ -6,8 +6,9 @@ import Image from "next/image";
 import BookEvent from "@/components/BookEvent";
 import EventCard from "@/components/EventCard";
 import {cacheLife} from "next/cache";
+import { getEventBySlug } from "@/lib/data/events";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+// Fetch event directly from the database to avoid relying on NEXT_PUBLIC_BASE_URL
 
 const EventDetailItem = ({icon, alt, label}: { icon: string; alt: string; label: string; }) => (
     <div className="flex-row-gap-2 items-center">
@@ -40,29 +41,8 @@ const EventDetails = async ({params}: { params: Promise <string>}) => {
     cacheLife('hours');
     const slug = await params;
 
-    let event;
-    try {
-        const request = await fetch(`${BASE_URL}/api/events/${slug}`, {
-            next: {revalidate: 60}
-        });
-
-        if (!request.ok) {
-            if (request.status === 404) {
-                return notFound();
-            }
-            throw new Error(`Failed to fetch event: ${request.statusText}`);
-        }
-
-        const response = await request.json();
-        event = response.event;
-
-        if (!event) {
-            return notFound();
-        }
-    } catch (error) {
-        console.error('Error fetching event:', error);
-        return notFound();
-    }
+    const event = await getEventBySlug(slug);
+    if (!event) return notFound();
 
     const {description, image, overview, date, time, location, mode, agenda, audience, tags, organizer} = event;
 
