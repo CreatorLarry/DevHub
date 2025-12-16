@@ -5,8 +5,10 @@ import BookEvent from "@/components/BookEvent";
 import {IEvent} from "@/database";
 import {getSimilarEventsBySlug} from "@/lib/actions/event.actions";
 import EventCard from "@/components/EventCard";
+import {cacheLife} from "next/cache";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+// Use absolute URL for server-side fetches (Node fetch requires absolute). Provide a dev fallback.
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
 const EventDetailItem = ({icon, alt, label}: { icon: string, alt: string, label: string }) => (
     <div className="flex-row-gap-2">
@@ -36,24 +38,32 @@ const EventTags = ({tags}: { tags: string[] }) => (
         ))}
     </div>
 )
-const EventDetailsPage = async ({params}: { params: Promise<{ slug: string }> }) => {
-    const {slug} = await params;
-    const request = await fetch(`${BASE_URL}/api/events/${slug}`);
+const EventDetailsPage = async ({ params }: { params: Promise<{ slug: string }> }) => {
+    'use cache'
+    cacheLife('hours')
+
+    const { slug } = await params;
+
+    const request = await fetch(`${BASE_URL}/api/events/${slug}`, { next: { revalidate: 3600 } });
+    if (!request.ok) return notFound();
+
+    const data = await request.json();
+    const event = data?.event as (IEvent | undefined);
+    if (!event) return notFound();
+
     const {
-        event: {
-            description,
-            image,
-            overview,
-            date,
-            time,
-            location,
-            mode,
-            agenda,
-            audience,
-            organizer,
-            tags,
-        }
-    } = await request.json();
+        description,
+        image,
+        overview,
+        date,
+        time,
+        location,
+        mode,
+        agenda,
+        audience,
+        organizer,
+        tags,
+    } = event;
 
     if (!description) return notFound();
 
@@ -107,7 +117,7 @@ const EventDetailsPage = async ({params}: { params: Promise<{ slug: string }> })
                             <p className="text sm">Be the first to book your spot!</p>
                         )}
 
-                        <BookEvent/>
+                        <BookEvent eventId={event._id} slug={event.slug}/>
                     </div>
                 </aside>
             </div>
